@@ -1,4 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
+build
 inst/doc
+inst/java

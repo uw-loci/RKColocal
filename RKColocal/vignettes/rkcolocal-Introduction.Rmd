@@ -2,12 +2,12 @@
 title: "Introduction to *“RKColocal”*"
 author: 
 - name: Shulei Wang
-  affiliation: Department of Statistics, University of Wisconsin-Madison; Morgridge Institute for Research
+  affiliation: Department of Statistics, Columbia University; Department of Statistics, University of Wisconsin-Madison; Morgridge Institute for Research
 - name: Ming Yuan
-  affiliation: Department of Statistics, University of Wisconsin-Madison; Morgridge Institute for Research
-date: "7-23-2017"
+  affiliation: Department of Statistics, Columbia University; Department of Statistics, University of Wisconsin-Madison; Morgridge Institute for Research
+date: "11-1-2017"
 abstract: >
-  `r Biocpkg("RKColocal")` provides baisc functions for dual-channel image input/output and colocalization analysis. RKColocal includes tools to display joint distribution of pixel intensities for colocalization analysis, evaluate the average degree of colocalization in a given region. 
+  `r Biocpkg("RKColocal")` provides baisc functions for dual-channel image input/output and colocalization analysis. RKColocal includes tools to display joint distribution of pixel intensities for colocalization analysis, evaluate the average degree of colocalization in a given region, qunatify the degree of colocalization at each pixel and identify colocalized region. 
 package: RKColocal
 output: 
   BiocStyle::html_document2:
@@ -61,6 +61,8 @@ There are three main functional modules in `r Biocpkg("RKColocal")`:
 * there are functions to plot different types of the joint distribution of pixel intensities in **Colocalization Analysis Plot**; 
 
 * the functions in **Region based Colocalization Analysis** assess the average degree of colocalization in a given region of interest via evaluating some statistical quantity.
+
+* **Spatial Adaptive Colocalization Analysis** aims to measure the colocalization level at each pixel and identify colocalized region in dual channel images.
 
 # Dual-Channel Images I/O
 
@@ -277,6 +279,35 @@ Another practical challenge is the potential dependence among $X_i$s and $Y_i$s.
 
 ```{r manders test, eval=FALSE}
 colocalroitest(X, Y, bsize = 32, method = 'mandersM2')
+```
+
+# Spatial Adaptive Colocalization Analysis (SACA)
+
+Although the region based colocalization analysis above can tell the existence of colocalization in any given region, all of them overlook the spatial information of images and fail to identify the colocalized region. Recently, @wang2017b proposes a new framework for spatial adaptive colocalization analysis. It is implenmented in the function `colocalpixel`. We apply it on the sample images. 
+
+```{r laca}
+saca <- colocalpixel(X, Y)
+str(saca)
+```
+
+The output of function `colocalpixel` is an object of class `colocalpixel`. There are five components in class `colocalpixel`: **Zvalue** is a matrix with the same dimension of input image, each entry of which is pixelwised $z$-value; **Pvalue** is a matrix with the same dimension of input image, each entry of which is pixelwised $p$-value; **SigPixel** is a boolean matrix representing significant/colocalized pixel; **Red** and **Green** are the two channels of dual-channel image. We can also plot the colocalized region of the class `colocalpixel` via function `plot`.
+
+```{r laca identify, fig.width=dim(img)[1L]/.dpi, fig.height=dim(img)[2L]/.dpi, dpi=.dpi/4}
+plot(saca)
+```
+
+In the plot above, the colocalized region is labelled by blue color. Besides the colocalized regions, `r Biocpkg("RKColocal")` can also display the heat map of $z$-values via function `HeatMapZ`.
+
+```{r laca heat map, fig.width=dim(img)[1L]/.dpi/1.5, fig.height=dim(img)[2L]/.dpi, dpi=.dpi/2.5, out.width='80%', fig.align="center"}
+HeatMapZ(saca)
+```
+
+Through this heatmap of $z$-value, the pixelwise colocalization level is dispalyed clearly and most high degree of colocalization concentrates on the edge of cell. 
+
+The significant region is selected via multiple comparison and the default mutiple comparison correction is through bonferroni method. Other mutiple comparison correction method can also be used and see the details in function `p.adjust`.
+
+```{r laca fdr, eval=FALSE}
+colocalpixel(X, Y, method = 'BH')
 ```
 
 # References
